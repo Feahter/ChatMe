@@ -9,11 +9,13 @@ import time
 import logging
 import os
 from typing import Optional, Dict, Any, List
+import psutil
 
 from .config import Config
 from .utils import filter_sensitive_info
 from .utils.monitoring import performance_monitor
 import speech_recognition as sr
+from .models.assistant import AssistantState
 
 try:
     import aifc
@@ -22,9 +24,13 @@ except ImportError:
     logging.warning("使用 wave 模块替代 aifc")
 
 class VoiceAssistant:
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.config = Config(**(config or {}))
+        self.state = AssistantState.IDLE
+        
         self._init_logging()
-        self._check_environment()
+        if os.getenv('SKIP_ENV_CHECK') != 'true':
+            self._check_environment()
         
         # 初始化组件
         self.recognizer = Recognizer()
@@ -116,10 +122,18 @@ class VoiceAssistant:
             return False
         return True
 
-    @lru_cache(maxsize=Config.CACHE_SIZE)
-    def _cached_ai_response(self, user_input: str):
-        """缓存AI响应"""
-        return self._get_ai_response_impl(user_input)
+    @lru_cache(maxsize=100)
+    def _cached_ai_response(self, user_input: str) -> str:
+        """缓存的AI响应"""
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": user_input}],
+                timeout=self.config.api_timeout
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            raise APIError(f"OpenAI API调用失败: {str(e)}")
 
     def listen(self):
         """增强的语音识别"""

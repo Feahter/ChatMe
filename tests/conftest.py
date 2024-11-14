@@ -11,6 +11,7 @@ from chatMe.main import VoiceAssistant
 from chatMe.core.recognition import SpeechRecognizer
 from chatMe.core.synthesis import SpeechSynthesizer
 from chatMe.core.dialogue import DialogueManager
+from chatMe.config import Config
 
 @pytest.fixture
 def temp_dir() -> Generator[str, None, None]:
@@ -85,7 +86,8 @@ def env_setup() -> Generator[None, None, None]:
     os.environ.update({
         'OPENAI_API_KEY': 'test_key',
         'SPEECH_LANGUAGE': 'zh-CN',
-        'SPEECH_RATE': '150'
+        'SPEECH_RATE': '150',
+        'SKIP_ENV_CHECK': 'true'
     })
     
     yield

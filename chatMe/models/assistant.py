@@ -16,7 +16,6 @@ from ..config import Config
 
 class AssistantState(Enum):
     """助手状态枚举"""
-    INITIALIZING = "initializing"
     IDLE = "idle"
     LISTENING = "listening"
     PROCESSING = "processing"
