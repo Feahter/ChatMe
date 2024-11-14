@@ -57,6 +57,7 @@ pip config set global.timeout 1000
 echo "安装项目依赖..."
 # 先安装关键依赖
 pip install wheel setuptools
+pip install aifc
 pip install SpeechRecognition PyAudio
 
 # 安装其他依赖

@@ -11,6 +11,12 @@ from .config import Config
 from .utils import filter_sensitive_info
 import speech_recognition as sr
 
+try:
+    import aifc
+except ImportError:
+    # 如果无法导入 aifc，使用替代方案
+    import wave as aifc
+
 class VoiceAssistant:
     def __init__(self):
         self._init_logging()
