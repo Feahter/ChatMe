@@ -6,6 +6,12 @@ import pytest
 from unittest.mock import patch, MagicMock
 from chatMe import VoiceAssistant, AssistantError
 from chatMe.models.assistant import AssistantState
+from chatMe.exceptions import (
+    NetworkError,
+    AudioDeviceError,
+    RecognitionError,
+    SynthesisError
+)
 
 def test_assistant_initialization(assistant):
     """测试助手初始化"""
@@ -154,3 +160,47 @@ def test_assistant_responses(assistant, input_text, expected_response):
         assistant.start()
         if expected_response:
             assistant.dialogue_manager.get_response.assert_called_with(input_text)
+
+def test_voice_assistant_initialization():
+    """测试助手初始化"""
+    assistant = VoiceAssistant()
+    assert assistant is not None
+    assert hasattr(assistant, 'recognizer')
+    assert hasattr(assistant, 'engine')
+
+def test_error_handling():
+    """测试错误处理"""
+    with pytest.raises(AssistantError):
+        raise AssistantError("测试错误")
+        
+    with pytest.raises(NetworkError):
+        raise NetworkError("网络错误")
+        
+    with pytest.raises(AudioDeviceError):
+        raise AudioDeviceError("音频设备错误")
+        
+    with pytest.raises(RecognitionError):
+        raise RecognitionError("语音识别错误")
+        
+    with pytest.raises(SynthesisError):
+        raise SynthesisError("语音合成错误")
+
+def test_environment_check(env_setup):
+    """测试环境检查"""
+    assistant = VoiceAssistant()
+    assert assistant._check_environment() is None
+
+def test_voice_engine_setup():
+    """测试语音引擎设置"""
+    assistant = VoiceAssistant()
+    assert assistant.engine is not None
+    assert assistant.engine.getProperty('rate') > 0
+    assert 0 <= assistant.engine.getProperty('volume') <= 1.0
+
+@pytest.mark.asyncio
+async def test_async_operations():
+    """测试异步操作"""
+    assistant = VoiceAssistant()
+    response = await assistant.get_ai_response_async("你好")
+    assert isinstance(response, str)
+    assert len(response) > 0

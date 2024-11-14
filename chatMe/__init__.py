@@ -2,7 +2,7 @@
 Author: Arthur arthur@lwork.com
 Date: 2024-11-14 18:22:34
 LastEditors: Arthur arthur@lwork.com
-LastEditTime: 2024-11-14 21:21:18
+LastEditTime: 2024-11-14 21:27:12
 FilePath: /ChatMe/chatMe/__init__.py
 Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 '''
@@ -18,6 +18,19 @@ from .version import __version__
 
 # 导入主要组件
 from .main import VoiceAssistant
+from .exceptions import (
+    AssistantError,
+    NetworkError,
+    AudioDeviceError,
+    RecognitionError,
+    SynthesisError,
+    APIError,
+    ConfigError,
+    CacheError,
+    ResourceError,
+    ValidationError,
+    DialogueError
+)
 
 # 检查Python版本
 if sys.version_info < (3, 8):
@@ -46,5 +59,17 @@ def check_environment(
 __all__ = [
     'VoiceAssistant',
     'check_environment',
-    '__version__'
+    '__version__',
+    # 异常类
+    'AssistantError',
+    'NetworkError',
+    'AudioDeviceError',
+    'RecognitionError',
+    'SynthesisError',
+    'APIError',
+    'ConfigError',
+    'CacheError',
+    'ResourceError',
+    'ValidationError',
+    'DialogueError'
 ]
