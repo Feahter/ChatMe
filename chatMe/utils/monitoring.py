@@ -8,6 +8,7 @@ from typing import Dict, List, Optional
 import logging
 from dataclasses import dataclass
 from ..config import Config
+from functools import wraps
 
 @dataclass
 class PerformanceMetrics:
@@ -19,6 +20,35 @@ class PerformanceMetrics:
     network_bytes_recv: int
     disk_usage_percent: float
     
+def performance_monitor(func):
+    """性能监控装饰器"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+        
+        try:
+            result = func(*args, **kwargs)
+            
+            end_time = time.time()
+            end_memory = psutil.Process().memory_info().rss / 1024 / 1024
+            
+            duration = end_time - start_time
+            memory_used = end_memory - start_memory
+            
+            logging.info(
+                f"函数 {func.__name__} 执行时间: {duration:.2f}秒, "
+                f"内存使用: {memory_used:.2f}MB"
+            )
+            
+            return result
+            
+        except Exception as e:
+            logging.error(f"函数 {func.__name__} 执行出错: {str(e)}")
+            raise
+            
+    return wrapper
+
 class PerformanceMonitor:
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or Config()

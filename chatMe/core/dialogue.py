@@ -7,82 +7,136 @@ FilePath: /ChatMe/ai_voice_assistant/core/dialogue.py
 Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 '''
 """
-语音合成模块
+对话管理模块
 """
-
-import pyttsx3
-from typing import Optional, Dict, Any
+from typing import List, Dict, Any, Optional
 import logging
-from ..exceptions import SynthesisError
+from dataclasses import dataclass
+from datetime import datetime
+from ..exceptions import DialogueError
 from ..config import Config
 
-class SpeechSynthesizer:
+@dataclass
+class DialogueContext:
+    """对话上下文数据类"""
+    user_id: str
+    session_id: str
+    start_time: datetime
+    messages: List[Dict[str, str]]
+    metadata: Optional[Dict[str, Any]] = None
+
+class DialogueManager:
+    """对话管理器"""
+    
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or Config()
+        self.contexts: Dict[str, DialogueContext] = {}
         self.logger = logging.getLogger(__name__)
-        self._init_engine()
-    
-    def _init_engine(self):
-        """初始化语音引擎"""
-        try:
-            self.engine = pyttsx3.init()
-            self._configure_engine()
-        except Exception as e:
-            raise SynthesisError(f"语音引擎初始化失败: {str(e)}")
-    
-    def _configure_engine(self):
-        """配置语音引擎参数"""
-        self.engine.setProperty('rate', self.config.SPEECH_RATE)
-        self.engine.setProperty('volume', self.config.SPEECH_VOLUME)
         
-        # 设置声音
-        voices = self.engine.getProperty('voices')
-        for voice in voices:
-            if self.config.SPEECH_LANGUAGE in voice.languages:
-                self.engine.setProperty('voice', voice.id)
-                break
-    
-    def speak(self, text: str):
+    def create_session(self, user_id: str) -> str:
         """
-        将文本转换为语音
+        创建新的对话会话
         
         Args:
-            text: 要转换的文本
+            user_id: 用户ID
             
-        Raises:
-            SynthesisError: 语音合成失败
+        Returns:
+            session_id: 会话ID
         """
-        if not text:
-            return
-            
         try:
-            self.logger.info(f"正在合成语音: {text}")
-            self.engine.say(text)
-            self.engine.runAndWait()
+            session_id = f"{user_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            self.contexts[session_id] = DialogueContext(
+                user_id=user_id,
+                session_id=session_id,
+                start_time=datetime.now(),
+                messages=[]
+            )
+            self.logger.info(f"创建新会话: {session_id}")
+            return session_id
         except Exception as e:
-            raise SynthesisError(f"语音合成失败: {str(e)}")
-    
-    def save_to_file(self, text: str, filename: str):
+            raise DialogueError(f"创建会话失败: {str(e)}")
+        
+    def add_message(self, session_id: str, role: str, content: str) -> None:
         """
-        将合成的语音保存到文件
+        添加对话消息
         
         Args:
-            text: 要转换的文本
-            filename: 输出文件名
+            session_id: 会话ID
+            role: 发言角色 ("user" 或 "assistant")
+            content: 消息内容
             
         Raises:
-            SynthesisError: 保存失败
+            DialogueError: 添加消息失败
         """
         try:
-            self.logger.info(f"正在保存语音到文件: {filename}")
-            self.engine.save_to_file(text, filename)
-            self.engine.runAndWait()
+            if session_id not in self.contexts:
+                raise ValueError(f"Session {session_id} not found")
+                
+            self.contexts[session_id].messages.append({
+                "role": role,
+                "content": content,
+                "timestamp": datetime.now().isoformat()
+            })
+            self.logger.debug(f"添加消息到会话 {session_id}: {role} - {content[:50]}...")
         except Exception as e:
-            raise SynthesisError(f"语音保存失败: {str(e)}")
-    
-    def stop(self):
-        """停止当前语音输出"""
+            raise DialogueError(f"添加消息失败: {str(e)}")
+        
+    def get_context(self, session_id: str) -> DialogueContext:
+        """
+        获取对话上下文
+        
+        Args:
+            session_id: 会话ID
+            
+        Returns:
+            DialogueContext: 对话上下文
+            
+        Raises:
+            DialogueError: 获取上下文失败
+        """
         try:
-            self.engine.stop()
+            if session_id not in self.contexts:
+                raise ValueError(f"Session {session_id} not found")
+            return self.contexts[session_id]
         except Exception as e:
-            self.logger.error(f"停止语音失败: {str(e)}")
+            raise DialogueError(f"获取上下文失败: {str(e)}")
+        
+    def get_history(self, session_id: str, limit: Optional[int] = None) -> List[Dict[str, str]]:
+        """
+        获取对话历史
+        
+        Args:
+            session_id: 会话ID
+            limit: 返回的最大消息数量
+            
+        Returns:
+            List[Dict]: 对话历史消息列表
+            
+        Raises:
+            DialogueError: 获取历史记录失败
+        """
+        try:
+            context = self.get_context(session_id)
+            messages = context.messages
+            if limit:
+                messages = messages[-limit:]
+            return messages
+        except Exception as e:
+            raise DialogueError(f"获取历史记录失败: {str(e)}")
+        
+    def clear_session(self, session_id: str) -> None:
+        """
+        清除会话数据
+        
+        Args:
+            session_id: 会话ID
+            
+        Raises:
+            DialogueError: 清除会话失败
+        """
+        try:
+            if session_id in self.contexts:
+                del self.contexts[session_id]
+                self.logger.info(f"清除会话: {session_id}")
+        except Exception as e:
+            raise DialogueError(f"清除会话失败: {str(e)}")

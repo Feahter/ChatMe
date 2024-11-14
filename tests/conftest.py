@@ -64,10 +64,10 @@ def mock_dialogue_manager() -> MagicMock:
 def assistant(test_config: Dict[str, Any],
              mock_recognizer: MagicMock,
              mock_synthesizer: MagicMock,
-             mock_dialogue_manager: MagicMock) -> Voice:
+             mock_dialogue_manager: MagicMock) -> VoiceAssistant:
     """创建测试用助手实例"""
     config = Config(**test_config)
-    assistant = Voice(config)
+    assistant = VoiceAssistant(config)
     
     # 替换为mock组件
     assistant.recognizer = mock_recognizer
@@ -114,3 +114,11 @@ def performance_data() -> Dict[str, float]:
         'network_bytes_recv': 2048,
         'disk_usage_percent': 65.8
     }
+
+@pytest.fixture
+def speech_recognizer():
+    return SpeechRecognizer()
+
+@pytest.fixture
+def dialogue_manager():
+    return DialogueManager()

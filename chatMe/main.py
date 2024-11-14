@@ -7,15 +7,19 @@ from functools import lru_cache
 from pathlib import Path
 import time
 import logging
+import os
+from typing import Optional, Dict, Any, List
+
 from .config import Config
 from .utils import filter_sensitive_info
+from .utils.monitoring import performance_monitor
 import speech_recognition as sr
 
 try:
     import aifc
 except ImportError:
-    # 如果无法导入 aifc，使用替代方案
     import wave as aifc
+    logging.warning("使用 wave 模块替代 aifc")
 
 class VoiceAssistant:
     def __init__(self):

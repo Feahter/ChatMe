@@ -2,7 +2,7 @@
 Author: Arthur arthur@lwork.com
 Date: 2024-11-14 18:33:12
 LastEditors: Arthur arthur@lwork.com
-LastEditTime: 2024-11-14 20:19:58
+LastEditTime: 2024-11-14 21:23:51
 FilePath: /ChatMe/chatMe/exceptions.py
 Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 '''
@@ -30,7 +30,7 @@ class AudioDeviceError(AssistantError):
         super().__init__(message or "音频设备错误", *args)
 
 class RecognitionError(AssistantError):
-    """语音识别错误"""
+    """��音识别错误"""
     def __init__(self, message: str = None, *args, **kwargs):
         super().__init__(message or "语音识别失败", *args)
 
@@ -67,3 +67,61 @@ class ValidationError(AssistantError):
         self.field = field
         message = message or f"数据验证失败 (字段: {field})"
         super().__init__(message, *args)
+
+"""
+自定义异常类模块
+"""
+
+class ChatMeError(Exception):
+    """基础异常类"""
+    pass
+
+class DialogueError(ChatMeError):
+    """对话管理相关异常"""
+    pass
+
+class SpeechError(ChatMeError):
+    """语音处理相关异常"""
+    pass
+
+class RecognitionError(SpeechError):
+    """语音识别异常"""
+    pass
+
+class SynthesisError(SpeechError):
+    """语音合成异常"""
+    pass
+
+class NetworkError(ChatMeError):
+    """网络相关异常"""
+    pass
+
+class ConfigError(ChatMeError):
+    """配置相关异常"""
+    pass
+
+class AssistantError(ChatMeError):
+    """助手核心功能异常"""
+    pass
+
+class CacheError(ChatMeError):
+    """缓存相关异常"""
+    pass
+
+class MonitoringError(ChatMeError):
+    """监控相关异常"""
+    pass
+
+# 导出所有异常类
+__all__ = [
+    'ChatMeError',
+    'DialogueError',
+    'SpeechError',
+    'RecognitionError',
+    'SynthesisError',
+    'NetworkError',
+    'ConfigError',
+    'AssistantError',
+    'CacheError',
+    'MonitoringError'
+]

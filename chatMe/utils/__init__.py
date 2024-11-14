@@ -9,17 +9,19 @@ Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查�
 """
 工具函数模块
 """
+from typing import Optional, Dict, Any, List
 
 from .audio import AudioProcessor
 from .cache import ResponseCache
 from .network import NetworkManager
-from .monitoring import PerformanceMonitor
+from .monitoring import performance_monitor
 
 __all__ = [
     'AudioProcessor',
     'ResponseCache',
     'NetworkManager',
-    'PerformanceMonitor',
+    'performance_monitor',
+    'filter_sensitive_info'
 ]
 
 def filter_sensitive_info(text: str) -> str:

@@ -10,12 +10,10 @@ Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查�
 核心功能模块
 """
 
-from .recognition import SpeechRecognizer
-from .synthesis import SpeechSynthesizer
 from .dialogue import DialogueManager
+from .recognition import SpeechRecognizer
 
 __all__ = [
-    'SpeechRecognizer',
-    'SpeechSynthesizer',
     'DialogueManager',
+    'SpeechRecognizer'
 ]
