@@ -4,14 +4,17 @@
 
 import pytest
 from unittest.mock import patch, MagicMock
-from chatMe import VoiceAssistant, AssistantError
-from chatMe.models.assistant import AssistantState
-from chatMe.exceptions import (
+from chatMe import (
+    VoiceAssistant,
+    ChatMe,
+    AssistantError,
     NetworkError,
     AudioDeviceError,
     RecognitionError,
     SynthesisError
 )
+from chatMe.models.assistant import AssistantState
+from chatMe.core.providers import AIProvider
 
 def test_assistant_initialization(assistant):
     """测试助手初始化"""
@@ -204,3 +207,24 @@ async def test_async_operations():
     response = await assistant.get_ai_response_async("你好")
     assert isinstance(response, str)
     assert len(response) > 0
+
+class MockProvider(AIProvider):
+    def generate_response(self, prompt: str, **kwargs):
+        return "Mock response"
+        
+    def validate_config(self, config):
+        return True
+
+def test_chat_with_provider():
+    """测试ChatMe基本功能"""
+    provider = MockProvider()
+    chat = ChatMe(provider=provider)
+    
+    response = chat.chat("Hello")
+    assert response == "Mock response"
+    
+def test_chat_without_provider():
+    """测试没有提供者的情况"""
+    chat = ChatMe()
+    with pytest.raises(ValueError):
+        chat.chat("Hello")

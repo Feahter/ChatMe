@@ -1,43 +1,27 @@
-# AI语音助手
+# ChatMe - AI语音助手
 
-![版本](https://img.shields.io/badge/version-0.1.0-blue.svg)
-![Python版本](https://img.shields.io/badge/python-3.8%2B-blue.svg)
-![许可证](https://img.shields.io/badge/license-Apache2.0-green.svg)
-![测试覆盖率](https://img.shields.io/badge/coverage-85%25-green.svg)
-![文档](https://img.shields.io/badge/docs-latest-brightgreen.svg)
-
-一个基于Python开发的智能语音助手系统，支持语音识别、语音合成和智能对话功能。
+ChatMe 是一个基于 Python 开发的智能语音助手，支持语音交互、自然语言处理和智能对话。
 
 ## 功能特点
 
-- 🎤 实时语音识别
-- 🔊 自然语音合成
-- 🤖 智能对话系统
-- 📝 对话历史管理
-- 📊 性能监控
-- 🌐 多语言支持
-- ⚡ 低延迟响应
-- 🛡️ 错误处理机制
+- 🎙️ 语音识别和合成
+- 🤖 基于 OpenAI GPT 的智能对话
+- 🌐 支持中英文双语
+- 📊 性能监控和优化
+- 🔒 敏感信息过滤
+- 💾 对话历史管理
+- ⚡ 响应缓存机制
 
 ## 系统要求
 
-- Python 3.8+
-- 操作系统：Windows/Linux/macOS
-- 麦克风和扬声器设备
-- 内存：至少4GB
+- Python 3.8-3.11
+- macOS/Linux/Windows
+- 麦克风和音频输出设备
 - 网络连接
 
+## 快速开始
 
-## 安装说明
-
-1.系统要求：
-- Python 3.8+
-- 最小内存：4GB
-- 麦克风设备
-- 扬声器设备
-
-2.安装步骤
-
+1. 克隆仓库：
 ```bash
 # 克隆项目
 git clone https://github.com/Feahter/ChatMe.git
@@ -58,19 +42,6 @@ cp .env.example .env
 # 编辑.env文件，添加OpenAI API密钥
 ```
 
-基本安装（仅核心功能）：
-```bash
-pip install -r requirements.txt --no-deps
-```
-完整安装（包含所有功能）：
-```bash
-pip install -r requirements.txt
-```
-开发环境安装（包含测试和开发工具）：
-```bash
-pip install -r requirements.txt[dev]
-```
-
 
 ## 使用说明
 
@@ -89,12 +60,66 @@ python -m chatMe
 - 避免嘈杂的环境
 
 ## 配置说明
-可以通过修改config.py文件调整以下参数：
-- 语音识别语言
-- 语音合成速率
-- 缓存大小
-- 网络超时时间
-- API参数设置
+
+ChatMe 提供了便捷的命令行工具来管理配置。
+
+### 初始化配置
+
+```bash
+# 初始化配置文件
+chatme init
+```
+
+### 管理AI提供者
+
+```bash
+# 添加新的AI提供者
+chatme provider add openai --api-key YOUR_KEY --model gpt-4
+
+# 更新提供者配置
+chatme provider update openai --model gpt-3.5-turbo
+
+# 查看所有提供者
+chatme provider list
+
+# 删除提供者
+chatme provider remove openai
+```
+
+### 全局设置
+
+```bash
+# 设置默认提供者
+chatme config --provider openai
+
+# 设置语言
+chatme config --language zh-CN
+
+# 设置语音参数
+chatme config --voice-rate 150 --voice-volume 0.8
+```
+
+### 配置文件位置
+
+配置文件默认保存在：
+- Linux/macOS: `~/.chatme/config.yaml`
+- Windows: `C:\Users\<用户名>\.chatme\config.yaml`
+
+### 配置文件示例
+
+```yaml
+default_provider: openai
+language: zh-CN
+voice_rate: 150
+voice_volume: 0.8
+providers:
+  openai:
+    api_key: sk-xxx...
+    model: gpt-3.5-turbo
+    temperature: 0.7
+    max_tokens: 2000
+```
+
 ## 故障排除
 1.常见问题：
 - 无法识别语音：检查麦克风设备和音量
@@ -208,3 +233,13 @@ chatMe/
 
 技术支持
 问题反馈：490087019@qq.com
+
+## 致谢
+
+- OpenAI GPT
+- Python Speech Recognition
+- pyttsx3
+- 所有贡献者
+
+---
+Made with ❤️ by [Arthur](https://github.com/Feahter)

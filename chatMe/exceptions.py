@@ -7,121 +7,74 @@ FilePath: /ChatMe/chatMe/exceptions.py
 Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 '''
 """
-AI Voice Assistant Exceptions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-定义所有自定义异常类。
+异常定义模块
 """
 
 class AssistantError(Exception):
-    """AI语音助手基础异常类"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        self.message = message or "AI语音助手发生错误"
-        super().__init__(self.message, *args)
+    """助手基础异常类"""
+    pass
 
 class NetworkError(AssistantError):
-    """网络相关错误"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        super().__init__(message or "网络连接错误", *args)
+    """网络错误"""
+    pass
 
 class AudioDeviceError(AssistantError):
     """音频设备错误"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        super().__init__(message or "音频设备错误", *args)
+    pass
 
 class RecognitionError(AssistantError):
-    """��音识别错误"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        super().__init__(message or "语音识别失败", *args)
+    """语音识别错误"""
+    pass
 
 class SynthesisError(AssistantError):
     """语音合成错误"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        super().__init__(message or "语音合成失败", *args)
+    pass
 
 class APIError(AssistantError):
     """API调用错误"""
-    def __init__(self, message: str = None, status_code: int = None, *args, **kwargs):
-        self.status_code = status_code
-        message = message or f"API调用失败 (状态码: {status_code})"
-        super().__init__(message, *args)
+    pass
 
 class ConfigError(AssistantError):
     """配置错误"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        super().__init__(message or "配置错误", *args)
+    pass
 
-class CacheError(AssistantError):
-    """缓存错误"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        super().__init__(message or "缓存操作失败", *args)
+class DialogueError(AssistantError):
+    """对话管理错误"""
+    pass
+
+class ValidationError(AssistantError):
+    """验证错误"""
+    pass
+
+class StateError(AssistantError):
+    """状态错误"""
+    pass
 
 class ResourceError(AssistantError):
     """资源错误"""
-    def __init__(self, message: str = None, *args, **kwargs):
-        super().__init__(message or "资源访问失败", *args)
-
-class ValidationError(AssistantError):
-    """数据验证错误"""
-    def __init__(self, message: str = None, field: str = None, *args, **kwargs):
-        self.field = field
-        message = message or f"数据验证失败 (字段: {field})"
-        super().__init__(message, *args)
-
-"""
-自定义异常类模块
-"""
-
-class ChatMeError(Exception):
-    """基础异常类"""
     pass
 
-class DialogueError(ChatMeError):
-    """对话管理相关异常"""
+class CacheError(AssistantError):
+    """缓存错误"""
     pass
 
-class SpeechError(ChatMeError):
-    """语音处理相关异常"""
-    pass
-
-class RecognitionError(SpeechError):
-    """语音识别异常"""
-    pass
-
-class SynthesisError(SpeechError):
-    """语音合成异常"""
-    pass
-
-class NetworkError(ChatMeError):
-    """网络相关异常"""
-    pass
-
-class ConfigError(ChatMeError):
-    """配置相关异常"""
-    pass
-
-class AssistantError(ChatMeError):
-    """助手核心功能异常"""
-    pass
-
-class CacheError(ChatMeError):
-    """缓存相关异常"""
-    pass
-
-class MonitoringError(ChatMeError):
-    """监控相关异常"""
+class MonitoringError(AssistantError):
+    """监控错误"""
     pass
 
 # 导出所有异常类
 __all__ = [
-    'ChatMeError',
-    'DialogueError',
-    'SpeechError',
+    'AssistantError',
+    'NetworkError',
+    'AudioDeviceError',
     'RecognitionError',
     'SynthesisError',
-    'NetworkError',
+    'APIError',
     'ConfigError',
-    'AssistantError',
+    'DialogueError',
+    'ValidationError',
+    'StateError',
+    'ResourceError',
     'CacheError',
     'MonitoringError'
 ]

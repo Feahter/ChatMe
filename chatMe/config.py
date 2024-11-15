@@ -1,79 +1,89 @@
 """
 配置模块
 """
-from typing import List, Optional, Dict, Any
-from dataclasses import dataclass, field
+from typing import Dict, Any, Optional
+from pathlib import Path
+import yaml
+import json
 
-@dataclass
 class Config:
-    """配置类"""
-    name: str = "AI Assistant"
-    language: str = "zh-CN"
-    voice_id: Optional[str] = None
-    wake_words: List[str] = field(default_factory=lambda: ["你好", "助手"])
-    max_conversation_history: int = 10
-    auto_adjust_noise: bool = True
-    enable_performance_monitoring: bool = False
+    """基础配置类"""
+    # 系统配置
+    SPEECH_LANGUAGE = "zh-CN"
+    AI_MODEL = "gpt-3.5-turbo"
+    SYSTEM_PROMPT = "你是一个智能助手"
     
-    # 语音参数
-    speech_rate: int = 150
-    SPEECH_RATE: int = 150
-    volume: float = 1.0
-    SPEECH_VOLUME: float = 1.0
-    energy_threshold: int = 300
-    ENERGY_THRESHOLD: int = 300
-    ambient_duration: int = 1
-    AMBIENT_DURATION: int = 1
-    listen_timeout: int = 5
-    LISTEN_TIMEOUT: int = 5
-    phrase_timeout: int = 3
-    PHRASE_TIMEOUT: int = 3
+    # 性能配置
+    MAX_TOKENS = 2000
+    RESPONSE_TIMEOUT = 30
+    RETRY_DELAY = 1
+    MAX_RETRIES = 3
+    NETWORK_TIMEOUT = 5
     
-    # API参数
-    api_timeout: int = 10
-    API_TIMEOUT: int = 10
-    max_retries: int = 3
-    MAX_RETRIES: int = 3
+    # 音频配置
+    MINIMUM_VOLUME = 100
+    MAX_HISTORY = 10
     
-    # 缓存参数
-    cache_size: int = 100
-    CACHE_SIZE: int = 100
+    def __init__(self, **kwargs):
+        # 允许通过kwargs覆盖默认配置
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        
+        # 语音配置
+        self.speech_rate = kwargs.get('speech_rate', 150)
+        self.volume = kwargs.get('volume', 0.8)
+        self.language = kwargs.get('language', self.SPEECH_LANGUAGE)
+        self.name = kwargs.get('name', 'AI Assistant')
+
+class AIConfig:
+    """AI配置管理类"""
     
-    # 网络参数
-    network_timeout: int = 5
-    NETWORK_TIMEOUT: int = 5
+    def __init__(self, config_path: Optional[str] = None):
+        self.config_path = config_path or str(Path.home() / ".chatme" / "config.yaml")
+        self.config = self._load_config()
     
-    # AI模型参数
-    AI_MODEL: str = "gpt-3.5-turbo"
-    SYSTEM_PROMPT: str = "你是一个智能语音助手"
-    MAX_TOKENS: int = 150
-    RESPONSE_TIMEOUT: int = 30
-    MAX_HISTORY: int = 10
-    
-    # 语音参数
-    SPEECH_LANGUAGE: str = "zh-CN"
-    MINIMUM_VOLUME: float = 0.1
-    RETRY_DELAY: int = 2
-    
-    def __post_init__(self):
-        """验证配置并同步属性"""
-        if self.max_conversation_history < 1:
-            raise ValueError("max_conversation_history must be positive")
-        if not self.language:
-            raise KeyError("language is required")
-        if not 0 <= self.volume <= 1:
-            raise ValueError("volume must be between 0 and 1")
-        if self.cache_size < 1:
-            raise ValueError("cache_size must be positive")
+    def _load_config(self) -> Dict[str, Any]:
+        """加载配置文件"""
+        config_file = Path(self.config_path)
+        
+        # 如果配置文件不存在，创建默认配置
+        if not config_file.exists():
+            default_config = {
+                "default_provider": "openai",
+                "providers": {
+                    "openai": {
+                        "api_key": "",
+                        "model": "gpt-3.5-turbo",
+                        "temperature": 0.7,
+                        "max_tokens": 2000
+                    }
+                },
+                "language": "zh-CN",
+                "speech_rate": 150,
+                "volume": 0.8
+            }
+            config_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(config_file, 'w') as f:
+                yaml.dump(default_config, f)
+            return default_config
             
-        # 同步属性
-        self.SPEECH_RATE = self.speech_rate
-        self.SPEECH_VOLUME = self.volume
-        self.ENERGY_THRESHOLD = self.energy_threshold
-        self.AMBIENT_DURATION = self.ambient_duration
-        self.LISTEN_TIMEOUT = self.listen_timeout
-        self.PHRASE_TIMEOUT = self.phrase_timeout
-        self.API_TIMEOUT = self.api_timeout
-        self.MAX_RETRIES = self.max_retries
-        self.CACHE_SIZE = self.cache_size
-        self.NETWORK_TIMEOUT = self.network_timeout
+        # 加载现有配置
+        with open(config_file) as f:
+            return yaml.safe_load(f)
+    
+    def save_config(self):
+        """保存配置到文件"""
+        with open(self.config_path, 'w') as f:
+            yaml.dump(self.config, f)
+    
+    def get_provider_config(self, provider_name: str) -> Dict[str, Any]:
+        """获取指定提供者的配置"""
+        return self.config.get("providers", {}).get(provider_name, {})
+    
+    def set_provider_config(self, provider_name: str, config: Dict[str, Any]):
+        """设置提供者配置"""
+        if "providers" not in self.config:
+            self.config["providers"] = {}
+        self.config["providers"][provider_name] = config
+        self.save_config()

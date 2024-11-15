@@ -1,0 +1,26 @@
+# 内置提供者示例
+openai_example:
+  type: openai
+  settings:
+    api_key: "your-api-key"
+    model: "gpt-3.5-turbo"
+    temperature: 0.7
+    max_tokens: 2000
+
+azure_example:
+  type: azure
+  settings:
+    api_key: "your-azure-key"
+    endpoint: "https://your-resource.openai.azure.com/"
+    deployment_name: "your-deployment"
+    temperature: 0.7
+
+# 自定义提供者示例
+custom_example:
+  type: custom_provider
+  module_path: "your_package.providers"
+  class_name: "CustomProvider"
+  settings:
+    api_key: "your-key"
+    model_path: "/path/to/model"
+    # 其他自定义设置... 

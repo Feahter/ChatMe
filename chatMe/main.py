@@ -12,11 +12,21 @@ import sys
 from typing import Optional, Dict, Any, List
 import psutil
 
-from .config import Config
+from .config import Config, AIConfig
 from .utils import filter_sensitive_info
 from .utils.monitoring import performance_monitor
 import speech_recognition as sr
 from .models.assistant import AssistantState
+from .core.providers import AIProvider
+from .exceptions import (
+    AssistantError,
+    NetworkError,
+    AudioDeviceError,
+    RecognitionError,
+    SynthesisError,
+    APIError,
+    ConfigError
+)
 
 try:
     import aifc
@@ -24,9 +34,58 @@ except ImportError:
     import wave as aifc
     logging.warning("使用 wave 模块替代 aifc")
 
+class ChatMe:
+    """简单的聊天接口类"""
+    def __init__(self, 
+                 provider: Optional[str] = None,
+                 config_path: Optional[str] = None,
+                 **kwargs):
+        """
+        Args:
+            provider: AI提供者名称，如 'openai'
+            config_path: 配置文件路径
+            **kwargs: 覆盖配置文件的参数
+        """
+        self.config = AIConfig(config_path)
+        
+        # 获取提供者名称
+        provider_name = provider or self.config.config.get('default_provider')
+        if not provider_name:
+            raise ValueError("未指定AI提供者")
+            
+        # 获取提供者配置
+        provider_config = self.config.get_provider_config(provider_name)
+        provider_config.update(kwargs)  # 使用kwargs覆盖配置
+        
+        # 初始化提供者
+        self.provider = self._init_provider(provider_name, provider_config)
+    
+    def _init_provider(self, provider_name: str, config: Dict[str, Any]) -> AIProvider:
+        """初始化AI提供者"""
+        try:
+            provider_config = {
+                "type": provider_name,
+                "settings": config
+            }
+            return AIProvider.from_config(provider_config)
+        except Exception as e:
+            raise ConfigError(f"初始化AI提供者失败: {str(e)}")
+    
+    def chat(self, message: str) -> str:
+        """与AI对话"""
+        if not self.provider:
+            raise ValueError("未设置AI提供者")
+            
+        return self.provider.generate_response(message)
+
 class VoiceAssistant:
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.config = Config(**(config or {}))
+    def __init__(self, config_path: Optional[str] = None):
+        """初始化语音助手
+        
+        Args:
+            config_path: 配置文件路径
+        """
+        self.config = AIConfig(config_path)
         self.state = AssistantState.IDLE
         
         self._init_logging()
@@ -38,8 +97,27 @@ class VoiceAssistant:
         self.engine = pyttsx3.init()
         self._setup_voice_engine()
         
-        self.conversation_history = []
+        # 初始化AI提供者
+        provider_name = self.config.config.get('default_provider')
+        if not provider_name:
+            raise ConfigError("未指定默认AI提供者")
+            
+        provider_config = self.config.get_provider_config(provider_name)
+        self.provider = self._init_provider(provider_name, provider_config)
         
+        self.conversation_history = []
+    
+    def _init_provider(self, provider_name: str, config: Dict[str, Any]) -> AIProvider:
+        """初始化AI提供者"""
+        try:
+            provider_config = {
+                "type": provider_name,
+                "settings": config
+            }
+            return AIProvider.from_config(provider_config)
+        except Exception as e:
+            raise ConfigError(f"初始化AI提供者失败: {str(e)}")
+    
     def _init_logging(self):
         """初始化日志系统"""
         log_file = Path("logs/assistant.log")
@@ -67,7 +145,7 @@ class VoiceAssistant:
                     self.engine.setProperty('voice', voice.id)
                     break
         except Exception as e:
-            raise AssistantError(f"语音引擎初始化失败: {str(e)}")
+            raise SynthesisError(f"语音引擎初始化失败: {str(e)}")
 
     def _get_optimal_voice(self):
         """选择最优的语音引擎"""
@@ -102,7 +180,7 @@ class VoiceAssistant:
             return True
         except:
             logging.error("网络连接失败")
-            return False
+            raise NetworkError("网络连接不可用")
 
     def _check_audio_devices(self):
         """检查音频设备"""
@@ -110,7 +188,7 @@ class VoiceAssistant:
             Microphone.list_microphone_names()
         except Exception as e:
             logging.error(f"麦克风检查失败: {str(e)}")
-            raise RuntimeError("请确保麦克风已正确连接")
+            raise AudioDeviceError("请确保麦克风已正确连接")
 
     def _setup_voice_engine(self):
         """配置语音引擎"""
