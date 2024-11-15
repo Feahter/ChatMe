@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 import logging
 import os
+import sys
 from typing import Optional, Dict, Any, List
 import psutil
 
@@ -113,8 +114,11 @@ class VoiceAssistant:
 
     def _setup_voice_engine(self):
         """配置语音引擎"""
-        self.engine.setProperty('rate', Config.SPEECH_RATE)
-        self.engine.setProperty('volume', Config.SPEECH_VOLUME)
+        try:
+            self.engine.setProperty('rate', self.config.speech_rate)
+            self.engine.setProperty('volume', self.config.volume)
+        except Exception as e:
+            raise SynthesisError(f"语音引擎配置失败: {str(e)}")
 
     def _check_volume(self, audio_data):
         """检查音量级别"""
@@ -244,3 +248,30 @@ class VoiceAssistant:
             except Exception as e:
                 logging.error(f"运行错误: {str(e)}")
                 self.speak("发生错误，正在重试...")
+
+def main_cli():
+    """命令行入口点"""
+    try:
+        # 设置日志
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        
+        # 加载环境变量
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        # 创建并运行助手
+        assistant = VoiceAssistant()
+        assistant.run()
+        
+    except KeyboardInterrupt:
+        logging.info("用户中断程序")
+        sys.exit(0)
+    except Exception as e:
+        logging.error(f"程序异常退出: {str(e)}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main_cli()

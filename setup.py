@@ -72,7 +72,7 @@ setup(
     extras_require=extras_require,
     entry_points={
         "console_scripts": [
-            "chatMe=chatMe.main:main",
+            "chatMe=chatMe.main:main_cli",
         ],
     },
     include_package_data=True,
